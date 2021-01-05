@@ -329,12 +329,7 @@ case class GpuCast(
                 GpuColumnVector.getNonNestedRapidsType(dataType))
             case ByteType | ShortType | IntegerType | LongType =>
               // filter out values that are not valid longs or nulls
-              val regex = if (ansiMode) {
-                GpuCast.ANSI_CASTABLE_TO_INT_REGEX
-              } else {
-                GpuCast.CASTABLE_TO_INT_REGEX
-              }
-              val longStrings = withResource(trimmed.matchesRe(regex)) { regexMatches =>
+              val longStrings = withResource(trimmed.isFloat or trimmed.isInteger) { regexMatches =>
                 if (ansiMode) {
                   withResource(regexMatches.all(DType.BOOL8)) { allRegexMatches =>
                     if (!allRegexMatches.getBoolean) {
